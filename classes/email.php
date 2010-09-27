@@ -16,6 +16,9 @@ class Email {
 	// SwiftMailer instance
 	protected static $mail;
 
+    // SwiftMailer attachments
+    protected static $attachments = null;
+
 	/**
 	 * Creates a SwiftMailer instance.
 	 *
@@ -83,7 +86,7 @@ class Email {
 	public static function send($to, $from, $subject, $message, $html = FALSE)
 	{
 		// Connect to SwiftMailer
-		(Email::$mail === NULL) and email::connect();
+		(Email::$mail === NULL) and Email::connect();
 
 		// Determine the message type
 		$html = ($html === TRUE) ? 'text/html' : 'text/plain';
@@ -139,7 +142,58 @@ class Email {
 			$message->setFrom($from[0], $from[1]);
 		}
 
-		return Email::$mail->send($message);
+        if (! empty(self::$attachments))
+        {
+            foreach (self::$attachments as $attachment)
+            {
+                $message->attach($attachment);
+            }
+        }
+        $response = Email::$mail->send($message);
+        self::clear_attachments();
+		return $response;
 	}
 
-} // End email
+    /**
+     * Clear attachments
+     *
+     * @return null
+     */
+    public static function clear_attachments()
+    {
+        return self::$attachments = null;
+    }
+
+	/**
+	 * Attach file to the current message.
+	 *
+     * @param  string                         Filename for dynamic $data or absolute path for existing file
+     * @param  string|Swift_OutputByteStream
+     * @param  string                         Mime Type
+	 * @return object|null                    Attached file as Swift_Attachment object
+	 */
+    public static function attach ($file = null, $data = null, $contentType = null)
+    {
+        // Connect to SwiftMailer
+		if (self::$mail === NULL)
+            self::connect();
+
+        $attachment = null;
+        // Add existing file
+        if ($data === null AND $file !== null)
+        {
+            if (file_exists($file))
+            {
+                $attachment = Swift_Attachment::fromPath($file, $contentType);
+            }
+        }
+        //Create the attachment with dynamic data
+        else
+        {
+            $attachment = Swift_Attachment::newInstance($data, $file, $contentType);
+        }
+        if ($attachment)
+            self::$attachments[] = $attachment;
+        return $attachment;
+    }
+} // End Email

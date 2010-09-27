@@ -37,3 +37,19 @@ The Swift_Mailer object setup by connect is returned by it so if you need to acc
 
         $mailer->send($message);
 
+
+### Email::attach($file = null, $data = null, $contentType = null)
+*Modified for personal needs*
+
+Attach files, can be called multiple times. Call this before Email::send, after sending attachments are clearing.
+When used dynamic attachment $data $file uses for a file name, otherwise $file is an absolute file path.
+#### Dynamic
+
+        $file = file_get_contents('/var/log/some.log');
+
+        Email::attach('current.log', $file);
+
+#### Existing files
+
+        Email::attach('/var/log/some.log');
+
