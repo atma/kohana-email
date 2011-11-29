@@ -10,7 +10,8 @@
  * @copyright  (c) 2007-2010 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Email_Core {
+class Email_Core
+{
 
     // SwiftMailer instance
     protected static $mail;
@@ -23,8 +24,10 @@ class Email_Core {
      * @param   string  DSN connection string
      * @return  object  Swift object
      */
-    public static function connect($config = NULL) {
-        if (!class_exists('Swift_Mailer', FALSE)) {
+    public static function connect($config = NULL)
+    {
+        if (!class_exists('Swift_Mailer', FALSE))
+        {
             // Load SwiftMailer
             require Kohana::find_file('vendor', 'swift/swift_required');
         }
@@ -32,7 +35,8 @@ class Email_Core {
         // Load default configuration
         ($config === NULL) and $config = Kohana::$config->load('email');
 
-        switch ($config['driver']) {
+        switch ($config['driver'])
+        {
             case 'smtp':
                 // Set port
                 $port = empty($config['options']['port']) ? 25 : (int) $config['options']['port'];
@@ -40,7 +44,8 @@ class Email_Core {
                 // Create SMTP Transport
                 $transport = Swift_SmtpTransport::newInstance($config['options']['hostname'], $port);
 
-                if (!empty($config['options']['encryption'])) {
+                if (!empty($config['options']['encryption']))
+                {
                     // Set encryption
                     $transport->setEncryption($config['options']['encryption']);
                 }
@@ -64,7 +69,7 @@ class Email_Core {
         }
 
         // Create the SwiftMailer instance
-        return Email::$mail = Swift_Mailer::newInstance($transport);
+        return self::$mail = Swift_Mailer::newInstance($transport);
     }
 
     /**
@@ -77,27 +82,34 @@ class Email_Core {
      * @param   boolean       send email as HTML
      * @return  integer       number of emails sent
      */
-    public static function send($to, $from, $subject, $message, $html = FALSE) {
+    public static function send($to, $from, $subject, $body, $html = FALSE)
+    {
         // Connect to SwiftMailer
-        (Email::$mail === NULL) and Email::connect();
+        (self::$mail === NULL) and Email::connect();
 
         // Determine the message type
         $html = ($html === TRUE) ? 'text/html' : 'text/plain';
 
         // Create the message
-        $message = Swift_Message::newInstance($subject, $message, $html, 'utf-8');
+        $message = Swift_Message::newInstance($subject, $body, $html, 'utf-8');
 
-        if (is_string($to)) {
+        if (is_string($to))
+        {
             // Single recipient
             $message->setTo($to);
-        } elseif (is_array($to)) {
-            if (isset($to[0]) AND isset($to[1])) {
+        }
+        elseif (is_array($to))
+        {
+            if (isset($to[0]) AND isset($to[1]))
+            {
                 // Create To: address set
                 $to = array('to' => $to);
             }
 
-            foreach ($to as $method => $set) {
-                if (!in_array($method, array('to', 'cc', 'bcc'))) {
+            foreach ($to as $method => $set)
+            {
+                if (!in_array($method, array('to', 'cc', 'bcc')))
+                {
                     // Use To: by default
                     $method = 'to';
                 }
@@ -105,36 +117,47 @@ class Email_Core {
                 // Create method name
                 $method = 'add' . ucfirst($method);
 
-                if (is_array($set)) {
+                if (is_array($set))
+                {
                     // Add a recipient with name
                     $message->$method($set[0], $set[1]);
-                } else {
+                }
+                else
+                {
                     // Add a recipient without name
                     $message->$method($set);
                 }
             }
         }
 
-        if (is_string($from)) {
+        if (is_string($from))
+        {
             // From without a name
             $message->setFrom($from);
-        } elseif (is_array($from)) {
+        }
+        elseif (is_array($from))
+        {
             // From with a name
             $message->setFrom($from[0], $from[1]);
         }
 
-        if (!empty(self::$attachments)) {
-            foreach (self::$attachments as $attachment) {
+        if (!empty(self::$attachments))
+        {
+            foreach (self::$attachments as $attachment)
+            {
                 $message->attach($attachment);
             }
         }
 
-        try {
+        try
+        {
             $response = self::$mail->send($message);
             self::clear_attachments();
 
             return $response;
-        } catch (Swift_SwiftException $e) {
+        }
+        catch (Swift_SwiftException $e)
+        {
             // Throw Kohana Http Exception
             throw new Http_Exception_408('Connecting to mailserver timed out: :message', array(
                 ':message' => $e->getMessage()
@@ -147,7 +170,8 @@ class Email_Core {
      *
      * @return null
      */
-    public static function clear_attachments() {
+    public static function clear_attachments()
+    {
         return self::$attachments = null;
     }
 
@@ -159,20 +183,24 @@ class Email_Core {
      * @param  string                         Mime Type
      * @return object|null                    Attached file as Swift_Attachment object
      */
-    public static function attach($file = null, $data = null, $contentType = null) {
+    public static function attach($file = null, $data = null, $contentType = null)
+    {
         // Connect to SwiftMailer
         if (self::$mail === NULL)
             self::connect();
 
         $attachment = null;
         // Add existing file
-        if ($data === null AND $file !== null) {
-            if (file_exists($file)) {
+        if ($data === null AND $file !== null)
+        {
+            if (file_exists($file))
+            {
                 $attachment = Swift_Attachment::fromPath($file, $contentType);
             }
         }
         //Create the attachment with dynamic data
-        else {
+        else
+        {
             $attachment = Swift_Attachment::newInstance($data, $file, $contentType);
         }
         if ($attachment)
