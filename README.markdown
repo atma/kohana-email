@@ -1,21 +1,15 @@
-Email Module For Kohana 3.0
+Email Module For Kohana 3.2
 =================================
 
-This is a direct port of the email helper from Kohana 2.3.3 source code.
+This is an Email abstraction module for [Swiftmailer](http://swiftmailer.org/).
 
-It has been updated to work with SwiftMailer 4 and includes the libs dir from the 4.0.4 distribution.
-
-Usage should be exactly as with old helper.
+It has been updated to work with SwiftMailer 4 and includes the libs from the 4.1.3 distribution.
 
 Methods defined:
 
 ### Email::connect($config = NULL)
 
-Creates SwiftMailer object. $config is an array of configuration values and defaults to using the config file 'email'.
-
-Note: PopBeforeSmtp is not supported in this release as I didn't know what was required to set it up.
-It IS supported in Swiftmailer through the Swift_Plugins_PopBeforeSmtpPlugin plugin class. This can be used manually if required.
-If anyone can modify and test the connect() methd with this functionality I'll add it but I can't find documentation about how it used to work (i.e. is expected to work) so I have left it out for now.
+Creates SwiftMailer object. $config is an array of configuration values and defaults to using the config file 'email.php'.
 
 ### Email::send($to, $from, $subject, $message, $html = false)
 
